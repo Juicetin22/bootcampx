@@ -11,18 +11,39 @@ pool.connect(() => {
   console.log("connected");
 });
 
-pool.query(`
-SELECT DISTINCT teachers.name as teacher, cohorts.name as cohort
-  FROM assistance_requests
-  JOIN students ON students.id = student_id
-  JOIN cohorts ON cohorts.id = cohort_id
-  JOIN teachers ON teachers.id = teacher_id
-  WHERE cohorts.name = '${process.argv[2]}'
-  ORDER BY teachers.name;
-`)
+const queryString = `
+  SELECT DISTINCT teachers.name as teacher, cohorts.name as cohort
+    FROM assistance_requests
+    JOIN students ON students.id = student_id
+    JOIN cohorts ON cohorts.id = cohort_id
+    JOIN teachers ON teachers.id = teacher_id
+    WHERE cohorts.name = $1
+    ORDER BY teachers.name;
+  `;
+
+const cohortName = process.argv[2];
+const values = [cohortName];
+
+pool.query(queryString, values)
 .then(res => {
   res.rows.forEach(user => {
     console.log(`${user.cohort}: ${user.teacher}`)
   })
 })
 .catch(err => console.error('query error', err.stack));
+
+// pool.query(`
+// SELECT DISTINCT teachers.name as teacher, cohorts.name as cohort
+//   FROM assistance_requests
+//   JOIN students ON students.id = student_id
+//   JOIN cohorts ON cohorts.id = cohort_id
+//   JOIN teachers ON teachers.id = teacher_id
+//   WHERE cohorts.name = '${process.argv[2]}'
+//   ORDER BY teachers.name;
+// `)
+// .then(res => {
+//   res.rows.forEach(user => {
+//     console.log(`${user.cohort}: ${user.teacher}`)
+//   })
+// })
+// .catch(err => console.error('query error', err.stack));
